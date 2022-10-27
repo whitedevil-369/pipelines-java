@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: x-fi
+  name: x-fi
+  namespace: qualifi-stg
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: x-fi
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: x-fi
+    spec:
+      containers:
+      - env:
+        - name: DB_HOST
+          value: bifrost-qualifi-core-stg-primary.storage-services.svc
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: user
+              name: bifrost-qualifi-core-stg-pguser-platform-pg-user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: bifrost-qualifi-core-stg-pguser-platform-pg-user
+        - name: DB_DATABASE
+          value: qualifi-db
+        image: bizfi/x-fi:v1.0.6
+        imagePullPolicy: IfNotPresent
+        name: frontend
+        ports:
+        - containerPort: 8000
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 500m
+            memory: 512Mi
